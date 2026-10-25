@@ -20,6 +20,7 @@ export default function Storefront() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeModalImage, setActiveModalImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{
@@ -73,6 +74,7 @@ export default function Storefront() {
 
   function handleOpenOrder(product: Product) {
     setSelectedProduct(product);
+    setActiveModalImage(product.image);
     setQuantity(1);
     setErrorMessage('');
     setOrderSuccess(null);
@@ -274,6 +276,11 @@ export default function Storefront() {
                     {product.badge && (
                       <span className="product-badge">{product.badge}</span>
                     )}
+                    {product.images && product.images.length > 1 && (
+                      <span className="product-badge" style={{ left: '16px', right: 'auto', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                        📷 {product.images.length} Photos
+                      </span>
+                    )}
                     <span className="image-index">
                       EDITION / 0{idx + 1}
                     </span>
@@ -417,12 +424,43 @@ export default function Storefront() {
                 {/* Selected Product Summary Box with Live Price Breakdown */}
                 <div className="selected-product-box" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={selectedProduct.image} alt={selectedProduct.name} />
+                    <img 
+                      src={activeModalImage || selectedProduct.image} 
+                      alt={selectedProduct.name} 
+                      style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)', flexShrink: 0 }}
+                    />
                     <div className="selected-details">
                       <strong>{selectedProduct.name}</strong>
                       <span>৳{selectedProduct.price.toLocaleString('en-BD')} × {quantity} mask{quantity > 1 ? 's' : ''} = ৳{itemsSubtotal.toLocaleString('en-BD')}</span>
                     </div>
                   </div>
+
+                  {/* Multiple image thumbnails row */}
+                  {selectedProduct.images && selectedProduct.images.length > 1 && (
+                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                      {selectedProduct.images.map((imgUrl, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setActiveModalImage(imgUrl)}
+                          title={`View photo ${i + 1}`}
+                          style={{
+                            border: (activeModalImage || selectedProduct.image) === imgUrl ? '2px solid var(--accent)' : '1px solid var(--border)',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
+                            width: '42px',
+                            height: '42px',
+                            padding: 0,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            background: 'transparent'
+                          }}
+                        >
+                          <img src={imgUrl} alt={`Thumbnail ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <div style={{ 
                     borderTop: '1px solid var(--border)', 

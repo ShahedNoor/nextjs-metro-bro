@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Product, Order, StoreSettings } from '@/types';
+import { Product, Order, StoreSettings, parseProductImages } from '@/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -64,21 +64,45 @@ export async function getProducts(): Promise<Product[]> {
         .order('created_at', { ascending: false });
       
       if (!error && data && data.length > 0) {
-        return data as Product[];
+        return (data as any[]).map((p) => {
+          const imgs = parseProductImages(p);
+          return {
+            ...p,
+            images: imgs,
+            image: imgs[0] || p.image || ''
+          } as Product;
+        });
       }
     } catch (e) {
       console.warn('Supabase fetch failed, using fallback products:', e);
     }
   }
-  return memoryProducts;
+  return memoryProducts.map((p) => {
+    const imgs = parseProductImages(p);
+    return {
+      ...p,
+      images: imgs,
+      image: imgs[0] || p.image || ''
+    };
+  });
 }
 
 export async function saveProduct(product: Product): Promise<boolean> {
+  const images = parseProductImages(product);
+  const primaryImage = images[0] || product.image || '';
+  const dbImageValue = images.length > 1 ? JSON.stringify(images) : primaryImage;
+
+  // Strip virtual `images` field so Supabase Postgres does not reject the upsert
+  const { images: _virtual, ...dbPayload } = {
+    ...product,
+    image: dbImageValue
+  };
+
   if (isSupabaseConfigured && supabase) {
     try {
       const { error } = await supabase
         .from('products')
-        .upsert(product);
+        .upsert(dbPayload);
       if (!error) return true;
       console.error('Supabase upsert error:', error);
     } catch (e) {
@@ -87,11 +111,16 @@ export async function saveProduct(product: Product): Promise<boolean> {
   }
 
   // Fallback update
+  const memoryObj: Product = {
+    ...product,
+    image: primaryImage,
+    images
+  };
   const index = memoryProducts.findIndex(p => p.id === product.id);
   if (index >= 0) {
-    memoryProducts[index] = product;
+    memoryProducts[index] = memoryObj;
   } else {
-    memoryProducts.unshift(product);
+    memoryProducts.unshift(memoryObj);
   }
   return true;
 }

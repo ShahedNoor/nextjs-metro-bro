@@ -17,12 +17,17 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const images: string[] = Array.isArray(body.images) && body.images.length > 0
+      ? body.images.filter(Boolean)
+      : (body.image ? [body.image] : ['https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80']);
+
     const product: Product = {
       id: body.id || 'mask-' + Date.now().toString().slice(-4),
       name: body.name,
       price: Number(body.price) || 0,
       description: body.description || '',
-      image: body.image || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
+      image: images[0] || '',
+      images: images,
       badge: body.badge || '',
       available: body.available !== false,
       created_at: body.created_at || new Date().toISOString()

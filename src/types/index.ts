@@ -4,9 +4,27 @@ export interface Product {
   price: number;
   description: string;
   image: string;
+  images?: string[];
   badge?: string;
   available: boolean;
   created_at?: string;
+}
+
+export function parseProductImages(product: Partial<Product>): string[] {
+  if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+    return product.images.filter(Boolean);
+  }
+  const imgStr = product.image;
+  if (!imgStr) return [];
+  if (imgStr.startsWith('[') && imgStr.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(imgStr);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter(Boolean);
+      }
+    } catch {}
+  }
+  return [imgStr];
 }
 
 export interface Order {

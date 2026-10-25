@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Product, Order } from '@/types';
+import { Product, Order, parseProductImages } from '@/types';
 import Link from 'next/link';
 import {
   Package,
@@ -20,7 +20,8 @@ import {
   Eye,
   Send,
   Truck,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -51,12 +52,23 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
-  const [productForm, setProductForm] = useState({
+  const [urlInput, setUrlInput] = useState('');
+  const [productForm, setProductForm] = useState<{
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+    image: string;
+    images: string[];
+    badge: string;
+    available: boolean;
+  }>({
     id: '',
     name: '',
     price: 0,
     description: '',
     image: '',
+    images: [],
     badge: '',
     available: true
   });
@@ -163,15 +175,19 @@ export default function AdminDashboard() {
   // ========================
   // PRODUCT OPERATIONS
   // ========================
+
   function openCreateProduct() {
     setIsCreatingProduct(true);
     setEditingProduct(null);
+    setUrlInput('');
+    const defaultImg = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80';
     setProductForm({
       id: 'mask-' + Date.now().toString().slice(-4),
       name: '',
       price: 650,
       description: '',
-      image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
+      image: defaultImg,
+      images: [defaultImg],
       badge: '',
       available: true
     });
@@ -180,68 +196,127 @@ export default function AdminDashboard() {
   function openEditProduct(product: Product) {
     setEditingProduct(product);
     setIsCreatingProduct(false);
+    setUrlInput('');
+    const imgs = parseProductImages(product);
     setProductForm({
       id: product.id,
       name: product.name,
       price: product.price,
       description: product.description,
-      image: product.image,
+      image: imgs[0] || product.image || '',
+      images: imgs.length > 0 ? imgs : (product.image ? [product.image] : []),
       badge: product.badge || '',
       available: product.available
     });
   }
 
-  function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleImageFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (PNG, JPG, WEBP).');
-      return;
+    const fileList = Array.from(files);
+    const compressedImages: string[] = [];
+
+    for (const file of fileList) {
+      if (!file.type.startsWith('image/')) continue;
+
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new window.Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1000;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.85));
+            } else {
+              resolve(event.target?.result as string);
+            }
+          };
+          img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      if (dataUrl) {
+        compressedImages.push(dataUrl);
+      }
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new window.Image();
-      img.onload = () => {
-        // Compress/resize with canvas to keep size fast and lightweight (max 1000px)
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDim = 1000;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          setProductForm((prev) => ({ ...prev, image: dataUrl }));
-        } else {
-          setProductForm((prev) => ({ ...prev, image: event.target?.result as string }));
-        }
+    if (compressedImages.length > 0) {
+      setProductForm((prev) => {
+        const updated = [...prev.images, ...compressedImages];
+        return {
+          ...prev,
+          images: updated,
+          image: updated[0] || ''
+        };
+      });
+    }
+
+    // Reset input so user can pick the same file again if desired
+    e.target.value = '';
+  }
+
+  function handleRemoveImage(indexToRemove: number) {
+    setProductForm((prev) => {
+      const updated = prev.images.filter((_, idx) => idx !== indexToRemove);
+      return {
+        ...prev,
+        images: updated,
+        image: updated[0] || ''
       };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    });
+  }
+
+  function handleAddImageUrl() {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    setProductForm((prev) => {
+      const updated = [...prev.images, trimmed];
+      return {
+        ...prev,
+        images: updated,
+        image: updated[0] || ''
+      };
+    });
+    setUrlInput('');
   }
 
   async function handleSaveProduct(e: React.FormEvent) {
     e.preventDefault();
+    if (productForm.images.length === 0) {
+      alert('Please add or upload at least 1 image for this product before saving.');
+      return;
+    }
+
     setIsSavingProduct(true);
     try {
+      const payload = {
+        ...productForm,
+        image: productForm.images[0] || '',
+        images: productForm.images
+      };
+
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productForm)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
@@ -1031,19 +1106,25 @@ export default function AdminDashboard() {
                   />
                 </label>
 
-                <div className="full" style={{ display: 'grid', gap: '8px' }}>
-                  <label style={{ fontWeight: 700, fontSize: '13px' }}>
-                    Product Photo / Image *
-                  </label>
-                  
-                  {/* Upload button area */}
+                {/* Multi-Image Box / Gallery */}
+                <div className="full" style={{ display: 'grid', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontWeight: 700, fontSize: '13px' }}>
+                      Product Images Gallery ({productForm.images.length}) *
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                      First image is the primary cover
+                    </span>
+                  </div>
+
+                  {/* Add images controls */}
                   <div style={{ 
                     display: 'flex', 
                     flexWrap: 'wrap', 
                     alignItems: 'center', 
-                    gap: '12px', 
+                    gap: '10px', 
                     background: 'var(--surface-2)', 
-                    padding: '14px', 
+                    padding: '12px', 
                     borderRadius: '6px', 
                     border: '1px dashed var(--border)' 
                   }}>
@@ -1055,36 +1136,140 @@ export default function AdminDashboard() {
                         alignItems: 'center', 
                         gap: '8px', 
                         fontSize: '13px',
-                        padding: '10px 16px',
+                        padding: '9px 16px',
                         margin: 0
                       }}
                     >
-                      <Upload size={16} /> Choose Image from Device (PC / Phone)
+                      <Upload size={16} /> Add Images from Device (Multiple Allowed)
                       <input 
                         type="file" 
+                        multiple
                         accept="image/png, image/jpeg, image/webp" 
-                        onChange={handleImageFileChange} 
+                        onChange={handleImageFilesChange} 
                         style={{ display: 'none' }} 
                       />
                     </label>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                      Supports PNG, JPG, WEBP (auto-compressed for high speed)
-                    </span>
+
+                    <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: '220px' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Or paste image URL and click Add..." 
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddImageUrl(); } }}
+                        style={{ fontSize: '12px', padding: '8px 10px' }}
+                      />
+                      <button 
+                        type="button" 
+                        className="action-btn" 
+                        onClick={handleAddImageUrl}
+                        style={{ whiteSpace: 'nowrap', fontSize: '12px' }}
+                      >
+                        <Plus size={14} /> Add URL
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Or manual URL */}
-                  <div style={{ marginTop: '4px' }}>
-                    <span style={{ font: '11px var(--mono)', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
-                      Or Image URL / Web link:
-                    </span>
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="https://... or choose file above" 
-                      value={productForm.image}
-                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                    />
-                  </div>
+                  {/* Images Box Grid with Cross Buttons */}
+                  {productForm.images.length > 0 ? (
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', 
+                      gap: '12px', 
+                      background: 'var(--surface-2)', 
+                      padding: '14px', 
+                      borderRadius: '8px', 
+                      border: '1px solid var(--border)' 
+                    }}>
+                      {productForm.images.map((imgUrl, idx) => (
+                        <div 
+                          key={idx} 
+                          style={{ 
+                            position: 'relative', 
+                            borderRadius: '6px', 
+                            overflow: 'hidden', 
+                            border: idx === 0 ? '2px solid var(--accent)' : '1px solid var(--border)',
+                            background: 'var(--surface-1)',
+                            aspectRatio: '1 / 1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          <img 
+                            src={imgUrl} 
+                            alt={`Product image ${idx + 1}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+
+                          {/* Primary Badge */}
+                          {idx === 0 && (
+                            <span style={{ 
+                              position: 'absolute', 
+                              bottom: '6px', 
+                              left: '6px', 
+                              background: 'var(--accent)', 
+                              color: '#fff', 
+                              fontSize: '9px', 
+                              fontWeight: 800, 
+                              padding: '2px 6px', 
+                              borderRadius: '3px',
+                              letterSpacing: '0.04em'
+                            }}>
+                              PRIMARY
+                            </span>
+                          )}
+
+                          {/* Cross (✕) Button at Top Corner */}
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveImage(idx)}
+                            title="Remove this image"
+                            style={{ 
+                              position: 'absolute', 
+                              top: '6px', 
+                              right: '6px', 
+                              width: '26px', 
+                              height: '26px', 
+                              borderRadius: '50%', 
+                              background: 'rgba(0, 0, 0, 0.75)', 
+                              color: '#ffffff', 
+                              border: '1px solid rgba(255, 255, 255, 0.4)', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              padding: 0
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#ef4444';
+                              e.currentTarget.style.transform = 'scale(1.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                          >
+                            <X size={14} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      padding: '20px', 
+                      textAlign: 'center', 
+                      background: 'var(--surface-2)', 
+                      borderRadius: '6px', 
+                      border: '1px dashed #ef4444', 
+                      color: '#ef4444',
+                      fontSize: '13px'
+                    }}>
+                      No images added yet. Click &quot;Add Images from Device&quot; or paste a URL above.
+                    </div>
+                  )}
                 </div>
 
                 <label className="full">
@@ -1107,32 +1292,6 @@ export default function AdminDashboard() {
                   <span>Show in live storefront (Available for purchase)</span>
                 </label>
               </div>
-
-              {/* Preview image */}
-              {productForm.image && (
-                <div style={{ 
-                  marginTop: '12px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '14px', 
-                  background: 'var(--surface-2)', 
-                  padding: '10px 14px', 
-                  borderRadius: '6px', 
-                  border: '1px solid var(--border)' 
-                }}>
-                  <img 
-                    src={productForm.image} 
-                    alt="Preview" 
-                    style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} 
-                  />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)' }}>Product Image Selected ✓</div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                      Ready to save. This image will appear on the storefront.
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                 <button type="submit" className="primary-button" style={{ flex: 1 }} disabled={isSavingProduct}>
