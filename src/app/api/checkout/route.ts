@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrder, getStoreSettings } from '@/lib/supabase';
 import { sendWhatsAppNotification, buildDirectWhatsAppUrl } from '@/lib/whatsapp';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,8 +55,11 @@ export async function POST(req: NextRequest) {
       whatsapp_sent: false
     });
 
-    // Try sending WhatsApp Cloud API Notification
-    const waResult = await sendWhatsAppNotification(order);
+    // Send notifications in parallel (WhatsApp & Telegram)
+    const [waResult, tgResult] = await Promise.all([
+      sendWhatsAppNotification(order).catch(e => ({ success: false, statusText: String(e) })),
+      sendTelegramNotification(order).catch(e => ({ success: false, statusText: String(e) }))
+    ]);
 
     const directWhatsAppUrl = buildDirectWhatsAppUrl(order);
 
@@ -63,7 +67,8 @@ export async function POST(req: NextRequest) {
       success: true,
       order,
       directWhatsAppUrl,
-      whatsappStatus: waResult
+      whatsappStatus: waResult,
+      telegramStatus: tgResult
     });
   } catch (error: unknown) {
     console.error('Checkout API error:', error);

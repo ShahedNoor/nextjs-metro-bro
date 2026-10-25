@@ -19,7 +19,8 @@ import {
   Lock,
   Eye,
   Send,
-  Truck
+  Truck,
+  Upload
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
   // Product Edit/Create Modal State
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [productForm, setProductForm] = useState({
     id: '',
     name: '',
@@ -58,6 +60,11 @@ export default function AdminDashboard() {
     badge: '',
     available: true
   });
+
+  // Telegram Testing
+  const [testTgToken, setTestTgToken] = useState('');
+  const [testTgChatId, setTestTgChatId] = useState('');
+  const [testTgStatus, setTestTgStatus] = useState<{ loading: boolean; message: string; error?: boolean } | null>(null);
 
   // WhatsApp Testing
   const [testNumberId, setTestNumberId] = useState('');
@@ -184,8 +191,52 @@ export default function AdminDashboard() {
     });
   }
 
+  function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WEBP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        // Compress/resize with canvas to keep size fast and lightweight (max 1000px)
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1000;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setProductForm((prev) => ({ ...prev, image: dataUrl }));
+        } else {
+          setProductForm((prev) => ({ ...prev, image: event.target?.result as string }));
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function handleSaveProduct(e: React.FormEvent) {
     e.preventDefault();
+    setIsSavingProduct(true);
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -202,6 +253,8 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       alert('Network error saving product');
+    } finally {
+      setIsSavingProduct(false);
     }
   }
 
@@ -266,6 +319,30 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       setTestStatus({ loading: false, message: 'Network error communicating with Meta API', error: true });
+    }
+  }
+
+  async function handleTestTelegram(e: React.FormEvent) {
+    e.preventDefault();
+    setTestTgStatus({ loading: true, message: 'Sending test message to Telegram...' });
+
+    try {
+      const res = await fetch('/api/test-telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: testTgToken,
+          chatId: testTgChatId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestTgStatus({ loading: false, message: 'Success! Test message delivered to your Telegram.' });
+      } else {
+        setTestTgStatus({ loading: false, message: data.error || 'Failed to send Telegram message', error: true });
+      }
+    } catch (err) {
+      setTestTgStatus({ loading: false, message: 'Network error communicating with Telegram', error: true });
     }
   }
 
@@ -731,10 +808,98 @@ export default function AdminDashboard() {
       )}
 
       {/* ========================================================
-          TAB 4: WHATSAPP CLOUD API & SETTINGS
+          TAB 4: TELEGRAM & WHATSAPP NOTIFICATIONS
          ======================================================== */}
       {activeTab === 'whatsapp' && (
         <div style={{ maxWidth: '800px' }}>
+          {/* Telegram Card (100% Free) */}
+          <div className="stat-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Send size={20} style={{ color: '#229ED9' }} />
+                <h3 style={{ fontSize: '18px' }}>
+                  Option A: Instant Telegram Bot Alerts (100% Free Forever)
+                </h3>
+              </div>
+              <span style={{ 
+                background: 'rgba(34, 197, 94, 0.15)', 
+                color: '#22c55e', 
+                fontSize: '11px', 
+                fontWeight: 700, 
+                padding: '3px 8px', 
+                borderRadius: '4px' 
+              }}>
+                RECOMMENDED &amp; ZERO COST
+              </span>
+            </div>
+            
+            <p style={{ color: 'var(--ink-secondary)', fontSize: '13px', lineHeight: 1.6, marginBottom: '18px' }}>
+              Whenever a customer places an order on Metro Bro, Next.js instantly sends the complete order receipt to your private Telegram or a Team Group. No credit card, no Meta approvals, and unlimited free messages!
+            </p>
+
+            <form onSubmit={handleTestTelegram} style={{ display: 'grid', gap: '16px' }}>
+              <div className="form-grid">
+                <label>
+                  Telegram Bot Token *
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" 
+                    value={testTgToken}
+                    onChange={(e) => setTestTgToken(e.target.value)}
+                  />
+                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', marginTop: '4px' }}>
+                    From @BotFather on Telegram
+                  </span>
+                </label>
+
+                <label>
+                  Telegram Chat ID (Personal or Group) *
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 987654321 or -100123456789" 
+                    value={testTgChatId}
+                    onChange={(e) => setTestTgChatId(e.target.value)}
+                  />
+                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', marginTop: '4px' }}>
+                    Your numeric ID or Group ID
+                  </span>
+                </label>
+              </div>
+
+              {testTgStatus && (
+                <div style={{ 
+                  padding: '12px', 
+                  borderRadius: '4px', 
+                  fontSize: '13px', 
+                  background: testTgStatus.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                  color: testTgStatus.error ? '#ef4444' : 'var(--success)',
+                  border: `1px solid ${testTgStatus.error ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                }}>
+                  {testTgStatus.loading ? 'Sending test...' : testTgStatus.message}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                className="primary-button" 
+                style={{ width: 'fit-content', background: '#229ED9' }}
+                disabled={testTgStatus?.loading}
+              >
+                <Send size={15} /> Send Test Telegram Alert
+              </button>
+            </form>
+
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted)', lineHeight: 1.8 }}>
+              <strong>Quick 2-Minute Setup:</strong>
+              <ol style={{ paddingLeft: '18px', marginTop: '6px' }}>
+                <li>Open <strong>@BotFather</strong> on Telegram → type <code>/newbot</code> → give it a name (e.g. <code>MetroBroOrderBot</code>) → copy the <strong>Token</strong>.</li>
+                <li><strong>To receive in private chat:</strong> Send a message to <strong>@userinfobot</strong> on Telegram to get your numeric <code>Id</code>.</li>
+                <li><strong>Or to receive in a Group:</strong> Create a Group, add your bot as Admin, and use the Group Chat ID.</li>
+                <li>Add them to your <code>.env.local</code> as <code>TELEGRAM_BOT_TOKEN</code> and <code>TELEGRAM_CHAT_ID</code>.</li>
+              </ol>
+            </div>
+          </div>
+
           <div className="stat-card" style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>
               Option B: Meta WhatsApp Cloud API Setup
@@ -866,16 +1031,61 @@ export default function AdminDashboard() {
                   />
                 </label>
 
-                <label className="full">
-                  Image URL / Photo Path *
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="https://... or /images/mask.jpg" 
-                    value={productForm.image}
-                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                  />
-                </label>
+                <div className="full" style={{ display: 'grid', gap: '8px' }}>
+                  <label style={{ fontWeight: 700, fontSize: '13px' }}>
+                    Product Photo / Image *
+                  </label>
+                  
+                  {/* Upload button area */}
+                  <div style={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    alignItems: 'center', 
+                    gap: '12px', 
+                    background: 'var(--surface-2)', 
+                    padding: '14px', 
+                    borderRadius: '6px', 
+                    border: '1px dashed var(--border)' 
+                  }}>
+                    <label 
+                      className="primary-button" 
+                      style={{ 
+                        cursor: 'pointer', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '8px', 
+                        fontSize: '13px',
+                        padding: '10px 16px',
+                        margin: 0
+                      }}
+                    >
+                      <Upload size={16} /> Choose Image from Device (PC / Phone)
+                      <input 
+                        type="file" 
+                        accept="image/png, image/jpeg, image/webp" 
+                        onChange={handleImageFileChange} 
+                        style={{ display: 'none' }} 
+                      />
+                    </label>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                      Supports PNG, JPG, WEBP (auto-compressed for high speed)
+                    </span>
+                  </div>
+
+                  {/* Or manual URL */}
+                  <div style={{ marginTop: '4px' }}>
+                    <span style={{ font: '11px var(--mono)', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
+                      Or Image URL / Web link:
+                    </span>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="https://... or choose file above" 
+                      value={productForm.image}
+                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                    />
+                  </div>
+                </div>
 
                 <label className="full">
                   Description
@@ -900,24 +1110,39 @@ export default function AdminDashboard() {
 
               {/* Preview image */}
               {productForm.image && (
-                <div style={{ marginTop: '10px' }}>
-                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Image Preview:</span>
+                <div style={{ 
+                  marginTop: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '14px', 
+                  background: 'var(--surface-2)', 
+                  padding: '10px 14px', 
+                  borderRadius: '6px', 
+                  border: '1px solid var(--border)' 
+                }}>
                   <img 
                     src={productForm.image} 
                     alt="Preview" 
-                    style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} 
+                    style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} 
                   />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)' }}>Product Image Selected ✓</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                      Ready to save. This image will appear on the storefront.
+                    </div>
+                  </div>
                 </div>
               )}
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                <button type="submit" className="primary-button" style={{ flex: 1 }}>
-                  Save &amp; Update Live Store ↗
+                <button type="submit" className="primary-button" style={{ flex: 1 }} disabled={isSavingProduct}>
+                  {isSavingProduct ? 'Saving to Database...' : 'Save & Update Live Store ↗'}
                 </button>
                 <button 
                   type="button" 
                   className="outline-button" 
                   onClick={() => { setIsCreatingProduct(false); setEditingProduct(null); }}
+                  disabled={isSavingProduct}
                 >
                   Cancel
                 </button>
