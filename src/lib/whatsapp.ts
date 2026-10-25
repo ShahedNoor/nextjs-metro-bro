@@ -19,6 +19,9 @@ export async function sendWhatsAppNotification(order: Order): Promise<WhatsAppSe
     };
   }
 
+  const itemsSubtotal = order.unit_price * order.quantity;
+  const delivery = order.delivery_charge || (order.district?.toLowerCase() === 'dhaka' ? 80 : 120);
+
   const messageText = [
     `🛵 *NEW METRO BRO ORDER RECEIVED!*`,
     `Ref: *${order.order_ref}*`,
@@ -26,10 +29,13 @@ export async function sendWhatsAppNotification(order: Order): Promise<WhatsAppSe
     `*Product:* ${order.product_name}`,
     `*Quantity:* ${order.quantity}`,
     `*Unit Price:* ৳${order.unit_price}`,
-    `*Subtotal:* ৳${order.total_price.toLocaleString('en-BD')}`,
+    `*Items Subtotal:* ৳${itemsSubtotal.toLocaleString('en-BD')}`,
+    `*Delivery Area:* ${order.district || 'Dhaka'} (৳${delivery})`,
+    `*Total Payable:* ৳${order.total_price.toLocaleString('en-BD')}`,
     `------------------------------------`,
     `*Customer Name:* ${order.customer_name}`,
     `*Phone:* ${order.phone}`,
+    `*District:* ${order.district || 'Dhaka'}`,
     `*Address:* ${order.address}`,
     `*Payment:* ${order.payment_method}`,
     `*Note:* ${order.note || 'None'}`,
@@ -81,6 +87,9 @@ export async function sendWhatsAppNotification(order: Order): Promise<WhatsAppSe
 
 export function buildDirectWhatsAppUrl(order: Order, recipientPhone: string = '8801799767774'): string {
   const digits = recipientPhone.replace(/\D/g, '');
+  const itemsSubtotal = order.unit_price * order.quantity;
+  const delivery = order.delivery_charge || (order.district?.toLowerCase() === 'dhaka' ? 80 : 120);
+
   const message = [
     `*NEW ORDER REQUEST — Metro Bro*`,
     `Order reference: ${order.order_ref}`,
@@ -88,15 +97,18 @@ export function buildDirectWhatsAppUrl(order: Order, recipientPhone: string = '8
     `Product: ${order.product_name}`,
     `Quantity: ${order.quantity}`,
     `Unit price: ৳${order.unit_price}`,
-    `Subtotal: ৳${order.total_price.toLocaleString('en-BD')}`,
+    `Items Subtotal: ৳${itemsSubtotal.toLocaleString('en-BD')}`,
+    `Delivery Area: ${order.district || 'Dhaka'} (৳${delivery})`,
+    `*Total Payable:* ৳${order.total_price.toLocaleString('en-BD')}`,
     ``,
     `Customer: ${order.customer_name}`,
     `Phone: ${order.phone}`,
+    `District: ${order.district || 'Dhaka'}`,
     `Address: ${order.address}`,
     `Payment preference: ${order.payment_method}`,
     `Note: ${order.note || 'None'}`,
     ``,
-    `Please confirm stock and delivery charge.`
+    `Please confirm stock and delivery scheduling.`
   ].join('\n');
 
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;

@@ -423,10 +423,16 @@ export default function AdminDashboard() {
                         <strong style={{ color: 'var(--accent)' }}>
                           ৳{ord.total_price.toLocaleString('en-BD')}
                         </strong>
+                        <div style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                          Delivery: ৳{ord.delivery_charge || (ord.district?.toLowerCase() === 'dhaka' ? 80 : 120)}
+                        </div>
                         <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{ord.payment_method}</div>
                       </td>
                       <td style={{ maxWidth: '240px', fontSize: '12px', color: 'var(--ink-secondary)' }}>
-                        {ord.address}
+                        <div style={{ fontWeight: 700, color: 'var(--ink)', marginBottom: '2px' }}>
+                          📍 {ord.district || 'Dhaka'}
+                        </div>
+                        <div>{ord.address}</div>
                         {ord.note && <div style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '4px' }}>Note: {ord.note}</div>}
                       </td>
                       <td>

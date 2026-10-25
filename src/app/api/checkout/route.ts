@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       unitPrice,
       customerName,
       phone,
+      district,
       address,
       paymentMethod,
       note
@@ -24,9 +25,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const selectedDistrict = String(district || 'Dhaka').trim();
+    // Delivery: Dhaka = 80 BDT, Outside Dhaka = 120 BDT
+    const deliveryCharge = selectedDistrict.toLowerCase() === 'dhaka' ? 80 : 120;
     const qty = Math.max(1, Math.min(99, Number(quantity) || 1));
     const price = Number(unitPrice) || 0;
-    const totalPrice = price * qty;
+    const subtotal = price * qty;
+    const totalPrice = subtotal + deliveryCharge;
     const orderRef = 'MB-' + Date.now().toString().slice(-8);
 
     // Save order into Supabase
@@ -36,9 +41,11 @@ export async function POST(req: NextRequest) {
       product_name: productName || 'Metro Bro Mask',
       quantity: qty,
       unit_price: price,
+      delivery_charge: deliveryCharge,
       total_price: totalPrice,
       customer_name: customerName,
       phone: phone,
+      district: selectedDistrict,
       address: address,
       payment_method: paymentMethod || 'Cash on delivery (if available)',
       note: note || '',
