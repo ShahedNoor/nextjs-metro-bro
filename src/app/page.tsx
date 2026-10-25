@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Product, Order, BANGLADESH_DISTRICTS } from '@/types';
 import Link from 'next/link';
-import { 
-  ArrowRight, 
-  ShoppingBag, 
-  CheckCircle, 
-  MessageCircle, 
-  ShieldCheck, 
-  Truck, 
+import {
+  ArrowRight,
+  ShoppingBag,
+  CheckCircle,
+  MessageCircle,
+  ShieldCheck,
+  Truck,
   X,
   ExternalLink,
   MapPin
@@ -185,10 +185,10 @@ export default function Storefront() {
               <a className="primary-button" href="#shop">
                 Shop The Drop <ArrowRight size={16} />
               </a>
-              <a 
-                className="outline-button" 
-                href="https://wa.me/8801799767774" 
-                target="_blank" 
+              <a
+                className="outline-button"
+                href="https://wa.me/8801799767774"
+                target="_blank"
                 rel="noreferrer"
               >
                 <MessageCircle size={16} /> WhatsApp Us
@@ -265,9 +265,9 @@ export default function Storefront() {
               {products.map((product, idx) => (
                 <article key={product.id} className="product-card">
                   <div className="product-image-wrap">
-                    <img 
-                      className="product-image" 
-                      src={product.image} 
+                    <img
+                      className="product-image"
+                      src={product.image}
                       alt={product.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80';
@@ -291,8 +291,8 @@ export default function Storefront() {
                       <span className="product-price">৳{product.price.toLocaleString('en-BD')}</span>
                     </div>
                     <p>{product.description}</p>
-                    <button 
-                      className="order-button" 
+                    <button
+                      className="order-button"
                       type="button"
                       onClick={() => handleOpenOrder(product)}
                     >
@@ -330,10 +330,10 @@ export default function Storefront() {
             <p className="eyebrow">QUESTIONS BEFORE ORDERING?</p>
             <h2>Talk to us <em>directly.</em></h2>
           </div>
-          <a 
-            className="outline-button" 
-            href="https://wa.me/8801799767774?text=Hi%20Metro%20Bro%2C%20I%20have%20a%20question%20about%20your%20riding%20masks." 
-            target="_blank" 
+          <a
+            className="outline-button"
+            href="https://wa.me/8801799767774?text=Hi%20Metro%20Bro%2C%20I%20have%20a%20question%20about%20your%20riding%20masks."
+            target="_blank"
             rel="noopener noreferrer"
           >
             <MessageCircle size={18} /> Chat on WhatsApp (+8801799767774)
@@ -377,11 +377,11 @@ export default function Storefront() {
                   Order Ref: {orderSuccess.order.order_ref}
                 </span>
 
-                <div style={{ 
-                  background: 'var(--surface-2)', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '6px', 
-                  padding: '14px', 
+                <div style={{
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  padding: '14px',
                   textAlign: 'left',
                   fontSize: '13px',
                   marginBottom: '20px',
@@ -400,18 +400,18 @@ export default function Storefront() {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <a 
-                    className="primary-button" 
-                    href={orderSuccess.directWhatsAppUrl} 
-                    target="_blank" 
+                  <a
+                    className="primary-button"
+                    href={orderSuccess.directWhatsAppUrl}
+                    target="_blank"
                     rel="noreferrer"
                     style={{ justifyContent: 'center' }}
                   >
                     <MessageCircle size={18} /> Open WhatsApp Chat with Order ID <ExternalLink size={14} />
                   </a>
-                  <button 
-                    type="button" 
-                    className="outline-button" 
+                  <button
+                    type="button"
+                    className="outline-button"
                     onClick={handleCloseModal}
                     style={{ justifyContent: 'center' }}
                   >
@@ -424,9 +424,9 @@ export default function Storefront() {
                 {/* Selected Product Summary Box with Live Price Breakdown */}
                 <div className="selected-product-box" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img 
-                      src={activeModalImage || selectedProduct.image} 
-                      alt={selectedProduct.name} 
+                    <img
+                      src={activeModalImage || selectedProduct.image}
+                      alt={selectedProduct.name}
                       style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)', flexShrink: 0 }}
                     />
                     <div className="selected-details">
@@ -462,11 +462,11 @@ export default function Storefront() {
                     </div>
                   )}
 
-                  <div style={{ 
-                    borderTop: '1px solid var(--border)', 
-                    paddingTop: '8px', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                  <div style={{
+                    borderTop: '1px solid var(--border)',
+                    paddingTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     fontSize: '12px'
                   }}>
@@ -476,12 +476,12 @@ export default function Storefront() {
                     <strong style={{ color: 'var(--ink)', font: '700 13px var(--mono)' }}>৳{deliveryCharge}</strong>
                   </div>
 
-                  <div style={{ 
-                    borderTop: '1px solid var(--border)', 
-                    paddingTop: '8px', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center' 
+                  <div style={{
+                    borderTop: '1px solid var(--border)',
+                    paddingTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}>
                     <span style={{ fontWeight: 800, fontSize: '13px' }}>Total Amount to Pay:</span>
                     <span className="selected-total" style={{ fontSize: '18px' }}>
@@ -493,10 +493,10 @@ export default function Storefront() {
                 <div className="form-grid">
                   <label>
                     Full Name *
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="e.g. Tanvir Ahmed" 
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Tanvir Ahmed"
                       value={formData.customerName}
                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                     />
@@ -504,10 +504,10 @@ export default function Storefront() {
 
                   <label>
                     Mobile Phone *
-                    <input 
-                      type="tel" 
-                      required 
-                      placeholder="01XXXXXXXXX" 
+                    <input
+                      type="tel"
+                      required
+                      placeholder="01XXXXXXXXX"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
@@ -516,7 +516,7 @@ export default function Storefront() {
                   {/* District / Zilla Dropdown with Dhaka ৳80 & Outside ৳120 */}
                   <label className="full">
                     District (জেলা) *
-                    <select 
+                    <select
                       value={formData.district}
                       onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                       required
@@ -535,10 +535,10 @@ export default function Storefront() {
 
                   <label className="full">
                     Detailed Delivery Address *
-                    <textarea 
-                      rows={3} 
-                      required 
-                      placeholder="House, Road, Area, Thana / Upazila" 
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="House, Road, Area, Thana / Upazila"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     />
@@ -546,10 +546,10 @@ export default function Storefront() {
 
                   <label>
                     Quantity
-                    <input 
-                      type="number" 
-                      min={1} 
-                      max={20} 
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     />
@@ -557,7 +557,7 @@ export default function Storefront() {
 
                   <label>
                     Payment Preference
-                    <select 
+                    <select
                       value={formData.paymentMethod}
                       onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                     >
@@ -569,9 +569,9 @@ export default function Storefront() {
 
                   <label className="full">
                     Special Instructions (Optional)
-                    <textarea 
-                      rows={2} 
-                      placeholder="e.g. Call before delivery, delivery after 4 PM" 
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Call before delivery, delivery after 4 PM"
                       value={formData.note}
                       onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                     />
@@ -588,9 +588,9 @@ export default function Storefront() {
                   </p>
                 )}
 
-                <button 
-                  className="primary-button submit-order" 
-                  type="submit" 
+                <button
+                  className="primary-button submit-order"
+                  type="submit"
                   disabled={isSubmitting}
                   style={{ width: '100%' }}
                 >

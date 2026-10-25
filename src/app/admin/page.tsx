@@ -500,8 +500,8 @@ export default function AdminDashboard() {
   // Calculations for stats
   const totalRevenue = orders.reduce((sum, o) => sum + (o.status !== 'cancelled' ? o.total_price : 0), 0);
   const pendingOrders = orders.filter((o) => o.status === 'pending');
-  const filteredOrders = orderFilter === 'all' 
-    ? orders 
+  const filteredOrders = orderFilter === 'all'
+    ? orders
     : orders.filter((o) => o.status === orderFilter);
 
   // If not logged in, show Password Screen
@@ -525,10 +525,10 @@ export default function AdminDashboard() {
           <form onSubmit={handleLogin} style={{ display: 'grid', gap: '16px' }}>
             <label style={{ display: 'grid', gap: '6px', fontSize: '12px', fontWeight: 700 }}>
               Admin Password
-              <input 
-                type="password" 
-                required 
-                placeholder="Password (default: metro2026)" 
+              <input
+                type="password"
+                required
+                placeholder="Password (default: metro2026)"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 autoFocus
@@ -612,29 +612,29 @@ export default function AdminDashboard() {
 
       {/* Navigation Tabs */}
       <div className="admin-nav">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
           onClick={() => setActiveTab('orders')}
         >
           <ShoppingCart size={16} /> Customer Orders ({orders.length})
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
           onClick={() => setActiveTab('products')}
         >
           <Package size={16} /> Product Variants &amp; Pricing ({products.length})
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
           <Truck size={16} /> Delivery Charges &amp; Rates
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'whatsapp' ? 'active' : ''}`}
           onClick={() => setActiveTab('whatsapp')}
         >
-          <Settings size={16} /> WhatsApp Cloud API &amp; Setup
+          <Settings size={16} /> Telegram Cloud API &amp; Setup
         </button>
       </div>
 
@@ -729,13 +729,13 @@ export default function AdminDashboard() {
                           <select
                             value={ord.status}
                             onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value as Order['status'])}
-                            style={{ 
-                              background: 'var(--surface-2)', 
-                              border: '1px solid var(--border)', 
-                              color: '#fff', 
-                              padding: '4px 8px', 
+                            style={{
+                              background: 'var(--surface-2)',
+                              border: '1px solid var(--border)',
+                              color: '#fff',
+                              padding: '4px 8px',
                               borderRadius: '4px',
-                              fontSize: '11px' 
+                              fontSize: '11px'
                             }}
                           >
                             <option value="pending">Pending</option>
@@ -785,21 +785,21 @@ export default function AdminDashboard() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {products.map((p) => (
-              <div 
-                key={p.id} 
-                className="stat-card" 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
+              <div
+                key={p.id}
+                className="stat-card"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
                   opacity: p.available ? 1 : 0.6,
                   border: p.available ? '1px solid var(--border)' : '1px dashed var(--border)'
                 }}
               >
                 <div style={{ height: '180px', position: 'relative', overflow: 'hidden', borderRadius: '4px', marginBottom: '14px', background: '#000' }}>
-                  <img 
-                    src={p.image} 
-                    alt={p.name} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {p.badge && (
                     <span className="product-badge" style={{ top: '10px', left: '10px' }}>
@@ -807,14 +807,14 @@ export default function AdminDashboard() {
                     </span>
                   )}
                   {!p.available && (
-                    <span style={{ 
-                      position: 'absolute', 
-                      bottom: '10px', 
-                      left: '10px', 
-                      background: '#ef4444', 
-                      color: '#fff', 
-                      padding: '4px 8px', 
-                      fontSize: '10px', 
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '10px',
+                      left: '10px',
+                      background: '#ef4444',
+                      color: '#fff',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       borderRadius: '2px',
                       fontWeight: 700
                     }}>
@@ -836,15 +836,15 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '14px' }}>
-                  <button 
-                    className="action-btn" 
+                  <button
+                    className="action-btn"
                     onClick={() => openEditProduct(p)}
                     style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
                   >
                     <Edit2 size={14} /> Edit Details &amp; Price
                   </button>
-                  <button 
-                    className="action-btn btn-danger" 
+                  <button
+                    className="action-btn btn-danger"
                     onClick={() => handleDeleteProduct(p.id)}
                     title="Delete product"
                   >
@@ -877,11 +877,11 @@ export default function AdminDashboard() {
               <div className="form-grid">
                 <label>
                   Inside Dhaka Delivery Charge (৳ BDT) *
-                  <input 
-                    type="number" 
-                    required 
+                  <input
+                    type="number"
+                    required
                     min={0}
-                    placeholder="80" 
+                    placeholder="80"
                     value={deliveryInsideDhaka}
                     onChange={(e) => setDeliveryInsideDhaka(Number(e.target.value) || 0)}
                   />
@@ -892,11 +892,11 @@ export default function AdminDashboard() {
 
                 <label>
                   Outside Dhaka Delivery Charge (৳ BDT) *
-                  <input 
-                    type="number" 
-                    required 
+                  <input
+                    type="number"
+                    required
                     min={0}
-                    placeholder="120" 
+                    placeholder="120"
                     value={deliveryOutsideDhaka}
                     onChange={(e) => setDeliveryOutsideDhaka(Number(e.target.value) || 0)}
                   />
@@ -907,9 +907,9 @@ export default function AdminDashboard() {
 
                 <label className="full">
                   Store WhatsApp Order Notification Number
-                  <input 
-                    type="text" 
-                    placeholder="8801799767774" 
+                  <input
+                    type="text"
+                    placeholder="8801799767774"
                     value={brandPhone}
                     onChange={(e) => setBrandPhone(e.target.value)}
                   />
@@ -920,11 +920,11 @@ export default function AdminDashboard() {
               </div>
 
               {settingsSuccess && (
-                <div style={{ 
-                  background: 'rgba(34, 197, 94, 0.1)', 
-                  border: '1px solid #22c55e', 
-                  borderRadius: '6px', 
-                  padding: '12px 16px', 
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '1px solid #22c55e',
+                  borderRadius: '6px',
+                  padding: '12px 16px',
                   color: '#22c55e',
                   fontSize: '13px',
                   display: 'flex',
@@ -935,9 +935,9 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <button 
-                type="submit" 
-                className="primary-button" 
+              <button
+                type="submit"
+                className="primary-button"
                 style={{ width: 'fit-content' }}
                 disabled={savingSettings}
               >
@@ -972,18 +972,18 @@ export default function AdminDashboard() {
                   Option A: Instant Telegram Bot Alerts (100% Free Forever)
                 </h3>
               </div>
-              <span style={{ 
-                background: 'rgba(34, 197, 94, 0.15)', 
-                color: '#22c55e', 
-                fontSize: '11px', 
-                fontWeight: 700, 
-                padding: '3px 8px', 
-                borderRadius: '4px' 
+              <span style={{
+                background: 'rgba(34, 197, 94, 0.15)',
+                color: '#22c55e',
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '3px 8px',
+                borderRadius: '4px'
               }}>
                 RECOMMENDED &amp; ZERO COST
               </span>
             </div>
-            
+
             <p style={{ color: 'var(--ink-secondary)', fontSize: '13px', lineHeight: 1.6, marginBottom: '18px' }}>
               Whenever a customer places an order on Metro Bro, Next.js instantly sends the complete order receipt to your private Telegram or a Team Group. No credit card, no Meta approvals, and unlimited free messages!
             </p>
@@ -992,9 +992,9 @@ export default function AdminDashboard() {
               <div className="form-grid">
                 <label>
                   Telegram Bot Token *
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" 
+                  <input
+                    type="text"
+                    placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
                     value={testTgToken}
                     onChange={(e) => setTestTgToken(e.target.value)}
                   />
@@ -1005,9 +1005,9 @@ export default function AdminDashboard() {
 
                 <label>
                   Telegram Chat ID (Personal or Group) *
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 987654321 or -100123456789" 
+                  <input
+                    type="text"
+                    placeholder="e.g. 987654321 or -100123456789"
                     value={testTgChatId}
                     onChange={(e) => setTestTgChatId(e.target.value)}
                   />
@@ -1018,26 +1018,26 @@ export default function AdminDashboard() {
               </div>
 
               {tgSavedSuccess && (
-                <div style={{ 
-                  background: 'rgba(34, 197, 94, 0.1)', 
-                  border: '1px solid #22c55e', 
-                  borderRadius: '6px', 
-                  padding: '12px 16px', 
-                  color: '#22c55e', 
-                  fontSize: '13px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px' 
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '1px solid #22c55e',
+                  borderRadius: '6px',
+                  padding: '12px 16px',
+                  color: '#22c55e',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}>
                   <Check size={16} /> {tgSavedSuccess}
                 </div>
               )}
 
               {testTgStatus && (
-                <div style={{ 
-                  padding: '12px', 
-                  borderRadius: '4px', 
-                  fontSize: '13px', 
+                <div style={{
+                  padding: '12px',
+                  borderRadius: '4px',
+                  fontSize: '13px',
                   background: testTgStatus.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
                   color: testTgStatus.error ? '#ef4444' : 'var(--success)',
                   border: `1px solid ${testTgStatus.error ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
@@ -1047,9 +1047,9 @@ export default function AdminDashboard() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  className="primary-button" 
+                <button
+                  type="button"
+                  className="primary-button"
                   style={{ background: '#229ED9' }}
                   onClick={handleSaveTelegramSettings}
                   disabled={savingTg}
@@ -1057,9 +1057,9 @@ export default function AdminDashboard() {
                   <Check size={16} /> {savingTg ? 'Saving to Database...' : 'Save Telegram Settings to Backend ↗'}
                 </button>
 
-                <button 
-                  type="submit" 
-                  className="outline-button" 
+                <button
+                  type="submit"
+                  className="outline-button"
                   disabled={testTgStatus?.loading}
                 >
                   <Send size={15} /> Send Test Telegram Alert
@@ -1090,9 +1090,9 @@ export default function AdminDashboard() {
               <div className="form-grid">
                 <label>
                   WhatsApp Phone Number ID
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 104829103847291" 
+                  <input
+                    type="text"
+                    placeholder="e.g. 104829103847291"
                     value={testNumberId}
                     onChange={(e) => setTestNumberId(e.target.value)}
                   />
@@ -1100,9 +1100,9 @@ export default function AdminDashboard() {
 
                 <label>
                   Recipient WhatsApp Number
-                  <input 
-                    type="text" 
-                    placeholder="8801799767774" 
+                  <input
+                    type="text"
+                    placeholder="8801799767774"
                     value={testRecipient}
                     onChange={(e) => setTestRecipient(e.target.value)}
                   />
@@ -1110,9 +1110,9 @@ export default function AdminDashboard() {
 
                 <label className="full">
                   Meta WhatsApp Access Token
-                  <input 
-                    type="password" 
-                    placeholder="Permanent or Temporary System User Access Token" 
+                  <input
+                    type="password"
+                    placeholder="Permanent or Temporary System User Access Token"
                     value={testToken}
                     onChange={(e) => setTestToken(e.target.value)}
                   />
@@ -1120,25 +1120,25 @@ export default function AdminDashboard() {
               </div>
 
               {waSavedSuccess && (
-                <div style={{ 
-                  background: 'rgba(34, 197, 94, 0.1)', 
-                  border: '1px solid #22c55e', 
-                  borderRadius: '6px', 
-                  padding: '12px 16px', 
-                  color: '#22c55e', 
-                  fontSize: '13px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px' 
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '1px solid #22c55e',
+                  borderRadius: '6px',
+                  padding: '12px 16px',
+                  color: '#22c55e',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}>
                   <Check size={16} /> {waSavedSuccess}
                 </div>
               )}
 
               {testStatus && (
-                <div style={{ 
-                  padding: '12px', 
-                  borderRadius: '4px', 
+                <div style={{
+                  padding: '12px',
+                  borderRadius: '4px',
                   fontSize: '13px',
                   background: testStatus.error ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
                   color: testStatus.error ? '#ef4444' : 'var(--success)',
@@ -1149,18 +1149,18 @@ export default function AdminDashboard() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  className="primary-button" 
+                <button
+                  type="button"
+                  className="primary-button"
                   onClick={handleSaveWhatsAppSettings}
                   disabled={savingWa}
                 >
                   <Check size={16} /> {savingWa ? 'Saving to Database...' : 'Save WhatsApp Settings to Backend ↗'}
                 </button>
 
-                <button 
-                  type="submit" 
-                  className="outline-button" 
+                <button
+                  type="submit"
+                  className="outline-button"
                   disabled={testStatus?.loading}
                 >
                   <Send size={15} /> Send Test WhatsApp Message
@@ -1204,10 +1204,10 @@ export default function AdminDashboard() {
               <div className="form-grid">
                 <label className="full">
                   Product Name *
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Metro Bro Mask — Carbon Edition" 
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Metro Bro Mask — Carbon Edition"
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                   />
@@ -1215,11 +1215,11 @@ export default function AdminDashboard() {
 
                 <label>
                   Price in BDT (৳) *
-                  <input 
-                    type="number" 
-                    required 
-                    min={1} 
-                    placeholder="650" 
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    placeholder="650"
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) || 0 })}
                   />
@@ -1227,9 +1227,9 @@ export default function AdminDashboard() {
 
                 <label>
                   Badge Tag (Optional)
-                  <input 
-                    type="text" 
-                    placeholder="e.g. FIRST DROP, HOT, LIMITED" 
+                  <input
+                    type="text"
+                    placeholder="e.g. FIRST DROP, HOT, LIMITED"
                     value={productForm.badge}
                     onChange={(e) => setProductForm({ ...productForm, badge: e.target.value })}
                   />
@@ -1247,50 +1247,50 @@ export default function AdminDashboard() {
                   </div>
 
                   {/* Add images controls */}
-                  <div style={{ 
-                    display: 'flex', 
-                    flexWrap: 'wrap', 
-                    alignItems: 'center', 
-                    gap: '10px', 
-                    background: 'var(--surface-2)', 
-                    padding: '12px', 
-                    borderRadius: '6px', 
-                    border: '1px dashed var(--border)' 
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: 'var(--surface-2)',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    border: '1px dashed var(--border)'
                   }}>
-                    <label 
-                      className="primary-button" 
-                      style={{ 
-                        cursor: 'pointer', 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '8px', 
+                    <label
+                      className="primary-button"
+                      style={{
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
                         fontSize: '13px',
                         padding: '9px 16px',
                         margin: 0
                       }}
                     >
                       <Upload size={16} /> Add Images from Device (Multiple Allowed)
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         multiple
-                        accept="image/png, image/jpeg, image/webp" 
-                        onChange={handleImageFilesChange} 
-                        style={{ display: 'none' }} 
+                        accept="image/png, image/jpeg, image/webp"
+                        onChange={handleImageFilesChange}
+                        style={{ display: 'none' }}
                       />
                     </label>
 
                     <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: '220px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Or paste image URL and click Add..." 
+                      <input
+                        type="text"
+                        placeholder="Or paste image URL and click Add..."
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddImageUrl(); } }}
                         style={{ fontSize: '12px', padding: '8px 10px' }}
                       />
-                      <button 
-                        type="button" 
-                        className="action-btn" 
+                      <button
+                        type="button"
+                        className="action-btn"
                         onClick={handleAddImageUrl}
                         style={{ whiteSpace: 'nowrap', fontSize: '12px' }}
                       >
@@ -1301,22 +1301,22 @@ export default function AdminDashboard() {
 
                   {/* Images Box Grid with Cross Buttons */}
                   {productForm.images.length > 0 ? (
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', 
-                      gap: '12px', 
-                      background: 'var(--surface-2)', 
-                      padding: '14px', 
-                      borderRadius: '8px', 
-                      border: '1px solid var(--border)' 
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+                      gap: '12px',
+                      background: 'var(--surface-2)',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)'
                     }}>
                       {productForm.images.map((imgUrl, idx) => (
-                        <div 
-                          key={idx} 
-                          style={{ 
-                            position: 'relative', 
-                            borderRadius: '6px', 
-                            overflow: 'hidden', 
+                        <div
+                          key={idx}
+                          style={{
+                            position: 'relative',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
                             border: idx === 0 ? '2px solid var(--accent)' : '1px solid var(--border)',
                             background: 'var(--surface-1)',
                             aspectRatio: '1 / 1',
@@ -1326,23 +1326,23 @@ export default function AdminDashboard() {
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                           }}
                         >
-                          <img 
-                            src={imgUrl} 
-                            alt={`Product image ${idx + 1}`} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          <img
+                            src={imgUrl}
+                            alt={`Product image ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
 
                           {/* Primary Badge */}
                           {idx === 0 && (
-                            <span style={{ 
-                              position: 'absolute', 
-                              bottom: '6px', 
-                              left: '6px', 
-                              background: 'var(--accent)', 
-                              color: '#fff', 
-                              fontSize: '9px', 
-                              fontWeight: 800, 
-                              padding: '2px 6px', 
+                            <span style={{
+                              position: 'absolute',
+                              bottom: '6px',
+                              left: '6px',
+                              background: 'var(--accent)',
+                              color: '#fff',
+                              fontSize: '9px',
+                              fontWeight: 800,
+                              padding: '2px 6px',
                               borderRadius: '3px',
                               letterSpacing: '0.04em'
                             }}>
@@ -1351,23 +1351,23 @@ export default function AdminDashboard() {
                           )}
 
                           {/* Cross (✕) Button at Top Corner */}
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => handleRemoveImage(idx)}
                             title="Remove this image"
-                            style={{ 
-                              position: 'absolute', 
-                              top: '6px', 
-                              right: '6px', 
-                              width: '26px', 
-                              height: '26px', 
-                              borderRadius: '50%', 
-                              background: 'rgba(0, 0, 0, 0.75)', 
-                              color: '#ffffff', 
-                              border: '1px solid rgba(255, 255, 255, 0.4)', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
+                            style={{
+                              position: 'absolute',
+                              top: '6px',
+                              right: '6px',
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '50%',
+                              background: 'rgba(0, 0, 0, 0.75)',
+                              color: '#ffffff',
+                              border: '1px solid rgba(255, 255, 255, 0.4)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
                               cursor: 'pointer',
                               transition: 'all 0.2s',
                               padding: 0
@@ -1387,12 +1387,12 @@ export default function AdminDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <div style={{ 
-                      padding: '20px', 
-                      textAlign: 'center', 
-                      background: 'var(--surface-2)', 
-                      borderRadius: '6px', 
-                      border: '1px dashed #ef4444', 
+                    <div style={{
+                      padding: '20px',
+                      textAlign: 'center',
+                      background: 'var(--surface-2)',
+                      borderRadius: '6px',
+                      border: '1px dashed #ef4444',
                       color: '#ef4444',
                       fontSize: '13px'
                     }}>
@@ -1403,17 +1403,17 @@ export default function AdminDashboard() {
 
                 <label className="full">
                   Description
-                  <textarea 
-                    rows={3} 
-                    placeholder="Explain fabrics, breathability, wind protection, etc." 
+                  <textarea
+                    rows={3}
+                    placeholder="Explain fabrics, breathability, wind protection, etc."
                     value={productForm.description}
                     onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   />
                 </label>
 
                 <label className="full" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     style={{ width: 'auto' }}
                     checked={productForm.available}
                     onChange={(e) => setProductForm({ ...productForm, available: e.target.checked })}
@@ -1426,9 +1426,9 @@ export default function AdminDashboard() {
                 <button type="submit" className="primary-button" style={{ flex: 1 }} disabled={isSavingProduct}>
                   {isSavingProduct ? 'Saving to Database...' : 'Save & Update Live Store ↗'}
                 </button>
-                <button 
-                  type="button" 
-                  className="outline-button" 
+                <button
+                  type="button"
+                  className="outline-button"
                   onClick={() => { setIsCreatingProduct(false); setEditingProduct(null); }}
                   disabled={isSavingProduct}
                 >
