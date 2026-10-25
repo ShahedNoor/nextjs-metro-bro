@@ -54,6 +54,10 @@ export interface StoreSettings {
   notificationEmail: string;
   deliveryInsideDhaka: number;
   deliveryOutsideDhaka: number;
+  telegramBotToken?: string;
+  telegramChatId?: string;
+  whatsappPhoneNumberId?: string;
+  whatsappAccessToken?: string;
 }
 
 export interface WhatsAppConfig {

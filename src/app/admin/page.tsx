@@ -73,16 +73,20 @@ export default function AdminDashboard() {
     available: true
   });
 
-  // Telegram Testing
+  // Telegram Testing & Configuration
   const [testTgToken, setTestTgToken] = useState('');
   const [testTgChatId, setTestTgChatId] = useState('');
   const [testTgStatus, setTestTgStatus] = useState<{ loading: boolean; message: string; error?: boolean } | null>(null);
+  const [savingTg, setSavingTg] = useState(false);
+  const [tgSavedSuccess, setTgSavedSuccess] = useState('');
 
-  // WhatsApp Testing
+  // WhatsApp Testing & Configuration
   const [testNumberId, setTestNumberId] = useState('');
   const [testToken, setTestToken] = useState('');
   const [testRecipient, setTestRecipient] = useState('8801799767774');
   const [testStatus, setTestStatus] = useState<{ loading: boolean; message: string; error?: boolean } | null>(null);
+  const [savingWa, setSavingWa] = useState(false);
+  const [waSavedSuccess, setWaSavedSuccess] = useState('');
 
   // Check existing session
   useEffect(() => {
@@ -118,12 +122,84 @@ export default function AdminDashboard() {
         }
         if (resSet.settings.whatsappNumber) {
           setBrandPhone(resSet.settings.whatsappNumber);
+          setTestRecipient(resSet.settings.whatsappNumber);
+        }
+        if (resSet.settings.telegramBotToken) {
+          setTestTgToken(resSet.settings.telegramBotToken);
+        }
+        if (resSet.settings.telegramChatId) {
+          setTestTgChatId(resSet.settings.telegramChatId);
+        }
+        if (resSet.settings.whatsappPhoneNumberId) {
+          setTestNumberId(resSet.settings.whatsappPhoneNumberId);
+        }
+        if (resSet.settings.whatsappAccessToken) {
+          setTestToken(resSet.settings.whatsappAccessToken);
         }
       }
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSaveTelegramSettings(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!testTgToken.trim() || !testTgChatId.trim()) {
+      alert('Please enter both Telegram Bot Token and Chat ID before saving.');
+      return;
+    }
+    setSavingTg(true);
+    setTgSavedSuccess('');
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegramBotToken: testTgToken.trim(),
+          telegramChatId: testTgChatId.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTgSavedSuccess('Telegram credentials saved to database! All future customer orders will alert this Telegram.');
+        setTimeout(() => setTgSavedSuccess(''), 5000);
+      } else {
+        alert(data.error || 'Failed to save Telegram settings');
+      }
+    } catch (err) {
+      alert('Error saving Telegram settings');
+    } finally {
+      setSavingTg(false);
+    }
+  }
+
+  async function handleSaveWhatsAppSettings(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    setSavingWa(true);
+    setWaSavedSuccess('');
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsappPhoneNumberId: testNumberId.trim(),
+          whatsappAccessToken: testToken.trim(),
+          whatsappNumber: testRecipient.trim()
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWaSavedSuccess('WhatsApp Cloud API credentials saved to database!');
+        setTimeout(() => setWaSavedSuccess(''), 5000);
+      } else {
+        alert(data.error || 'Failed to save WhatsApp settings');
+      }
+    } catch (err) {
+      alert('Error saving WhatsApp settings');
+    } finally {
+      setSavingWa(false);
     }
   }
 
@@ -941,6 +1017,22 @@ export default function AdminDashboard() {
                 </label>
               </div>
 
+              {tgSavedSuccess && (
+                <div style={{ 
+                  background: 'rgba(34, 197, 94, 0.1)', 
+                  border: '1px solid #22c55e', 
+                  borderRadius: '6px', 
+                  padding: '12px 16px', 
+                  color: '#22c55e', 
+                  fontSize: '13px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px' 
+                }}>
+                  <Check size={16} /> {tgSavedSuccess}
+                </div>
+              )}
+
               {testTgStatus && (
                 <div style={{ 
                   padding: '12px', 
@@ -954,14 +1046,25 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <button 
-                type="submit" 
-                className="primary-button" 
-                style={{ width: 'fit-content', background: '#229ED9' }}
-                disabled={testTgStatus?.loading}
-              >
-                <Send size={15} /> Send Test Telegram Alert
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  className="primary-button" 
+                  style={{ background: '#229ED9' }}
+                  onClick={handleSaveTelegramSettings}
+                  disabled={savingTg}
+                >
+                  <Check size={16} /> {savingTg ? 'Saving to Database...' : 'Save Telegram Settings to Backend ↗'}
+                </button>
+
+                <button 
+                  type="submit" 
+                  className="outline-button" 
+                  disabled={testTgStatus?.loading}
+                >
+                  <Send size={15} /> Send Test Telegram Alert
+                </button>
+              </div>
             </form>
 
             <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted)', lineHeight: 1.8 }}>
@@ -1016,6 +1119,22 @@ export default function AdminDashboard() {
                 </label>
               </div>
 
+              {waSavedSuccess && (
+                <div style={{ 
+                  background: 'rgba(34, 197, 94, 0.1)', 
+                  border: '1px solid #22c55e', 
+                  borderRadius: '6px', 
+                  padding: '12px 16px', 
+                  color: '#22c55e', 
+                  fontSize: '13px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px' 
+                }}>
+                  <Check size={16} /> {waSavedSuccess}
+                </div>
+              )}
+
               {testStatus && (
                 <div style={{ 
                   padding: '12px', 
@@ -1029,14 +1148,24 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <button 
-                type="submit" 
-                className="primary-button" 
-                style={{ width: 'fit-content' }}
-                disabled={testStatus?.loading}
-              >
-                <Send size={15} /> Send Test WhatsApp Message
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  className="primary-button" 
+                  onClick={handleSaveWhatsAppSettings}
+                  disabled={savingWa}
+                >
+                  <Check size={16} /> {savingWa ? 'Saving to Database...' : 'Save WhatsApp Settings to Backend ↗'}
+                </button>
+
+                <button 
+                  type="submit" 
+                  className="outline-button" 
+                  disabled={testStatus?.loading}
+                >
+                  <Send size={15} /> Send Test WhatsApp Message
+                </button>
+              </div>
             </form>
           </div>
 

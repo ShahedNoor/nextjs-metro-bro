@@ -1,4 +1,5 @@
 import { Order } from '@/types';
+import { getStoreSettings } from '@/lib/supabase';
 
 export interface TelegramResult {
   success: boolean;
@@ -9,13 +10,14 @@ export interface TelegramResult {
  * Send an automated Telegram message to your Bot/Group whenever an order is placed
  */
 export async function sendTelegramNotification(order: Order): Promise<TelegramResult> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const settings = await getStoreSettings().catch(() => null);
+  const botToken = settings?.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = settings?.telegramChatId || process.env.TELEGRAM_CHAT_ID;
 
   if (!botToken || !chatId) {
     return {
       success: false,
-      statusText: 'Telegram bot credentials not configured in .env.local'
+      statusText: 'Telegram bot credentials not configured in backend settings'
     };
   }
 
