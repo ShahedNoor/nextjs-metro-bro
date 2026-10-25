@@ -71,7 +71,7 @@ CREATE POLICY "Allow access to store_settings" ON public.store_settings
 -- 5. Seed Initial Store Settings
 INSERT INTO public.store_settings (key, value)
 VALUES 
-    ('store_info', '{"brandName": "Metro Bro", "whatsappNumber": "8801799767774", "currency": "৳", "notificationEmail": "gamershishir26@gmail.com"}'::jsonb),
+    ('store_info', '{"brandName": "Metro Bro", "whatsappNumber": "8801799767774", "currency": "৳", "notificationEmail": "gamershishir26@gmail.com", "deliveryInsideDhaka": 80, "deliveryOutsideDhaka": 120}'::jsonb),
     ('whatsapp_cloud_api', '{"phoneNumberId": "", "accessToken": "", "recipientNumber": "8801799767774"}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 

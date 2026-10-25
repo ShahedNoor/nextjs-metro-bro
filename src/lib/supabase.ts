@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Product, Order } from '@/types';
+import { Product, Order, StoreSettings } from '@/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -180,4 +180,61 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     return true;
   }
   return false;
+}
+
+// ========================
+// STORE SETTINGS API
+// ========================
+let memorySettings: StoreSettings = {
+  brandName: 'Metro Bro',
+  whatsappNumber: '8801799767774',
+  currency: '৳',
+  notificationEmail: 'gamershishir26@gmail.com',
+  deliveryInsideDhaka: 80,
+  deliveryOutsideDhaka: 120
+};
+
+export async function getStoreSettings(): Promise<StoreSettings> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('store_settings')
+        .select('value')
+        .eq('key', 'store_info')
+        .single();
+      
+      if (!error && data?.value) {
+        return {
+          ...memorySettings,
+          ...data.value
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to fetch settings from Supabase:', e);
+    }
+  }
+  return memorySettings;
+}
+
+export async function saveStoreSettings(settings: Partial<StoreSettings>): Promise<StoreSettings> {
+  memorySettings = {
+    ...memorySettings,
+    ...settings
+  };
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase
+        .from('store_settings')
+        .upsert({
+          key: 'store_info',
+          value: memorySettings,
+          updated_at: new Date().toISOString()
+        });
+    } catch (e) {
+      console.error('Failed to save settings to Supabase:', e);
+    }
+  }
+
+  return memorySettings;
 }

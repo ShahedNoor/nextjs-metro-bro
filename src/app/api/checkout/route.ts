@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOrder } from '@/lib/supabase';
+import { createOrder, getStoreSettings } from '@/lib/supabase';
 import { sendWhatsAppNotification, buildDirectWhatsAppUrl } from '@/lib/whatsapp';
 
 export async function POST(req: NextRequest) {
@@ -26,8 +26,9 @@ export async function POST(req: NextRequest) {
     }
 
     const selectedDistrict = String(district || 'Dhaka').trim();
-    // Delivery: Dhaka = 80 BDT, Outside Dhaka = 120 BDT
-    const deliveryCharge = selectedDistrict.toLowerCase() === 'dhaka' ? 80 : 120;
+    const settings = await getStoreSettings();
+    const isDhaka = selectedDistrict.toLowerCase() === 'dhaka';
+    const deliveryCharge = isDhaka ? settings.deliveryInsideDhaka : settings.deliveryOutsideDhaka;
     const qty = Math.max(1, Math.min(99, Number(quantity) || 1));
     const price = Number(unitPrice) || 0;
     const subtotal = price * qty;

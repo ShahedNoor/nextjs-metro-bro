@@ -18,7 +18,8 @@ import {
   LogOut,
   Lock,
   Eye,
-  Send
+  Send,
+  Truck
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -27,8 +28,15 @@ export default function AdminDashboard() {
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Active Tab: 'orders' | 'products' | 'whatsapp'
-  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'whatsapp'>('orders');
+  // Active Tab: 'orders' | 'products' | 'settings' | 'whatsapp'
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'settings' | 'whatsapp'>('orders');
+
+  // Delivery Charges & Store Settings
+  const [deliveryInsideDhaka, setDeliveryInsideDhaka] = useState(80);
+  const [deliveryOutsideDhaka, setDeliveryOutsideDhaka] = useState(120);
+  const [brandPhone, setBrandPhone] = useState('8801799767774');
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSuccess, setSettingsSuccess] = useState('');
 
   // Data states
   const [orders, setOrders] = useState<Order[]>([]);
@@ -74,17 +82,57 @@ export default function AdminDashboard() {
   async function loadData() {
     setLoading(true);
     try {
-      const [resProd, resOrd] = await Promise.all([
+      const [resProd, resOrd, resSet] = await Promise.all([
         fetch('/api/products').then((r) => r.json()),
-        fetch('/api/orders').then((r) => r.json())
+        fetch('/api/orders').then((r) => r.json()),
+        fetch('/api/settings').then((r) => r.json()).catch(() => null)
       ]);
 
-      if (resProd.products) setProducts(resProd.products);
-      if (resOrd.orders) setOrders(resOrd.orders);
+      if (resProd?.products) setProducts(resProd.products);
+      if (resOrd?.orders) setOrders(resOrd.orders);
+      if (resSet?.settings) {
+        if (resSet.settings.deliveryInsideDhaka !== undefined) {
+          setDeliveryInsideDhaka(Number(resSet.settings.deliveryInsideDhaka));
+        }
+        if (resSet.settings.deliveryOutsideDhaka !== undefined) {
+          setDeliveryOutsideDhaka(Number(resSet.settings.deliveryOutsideDhaka));
+        }
+        if (resSet.settings.whatsappNumber) {
+          setBrandPhone(resSet.settings.whatsappNumber);
+        }
+      }
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSaveSettings(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingSettings(true);
+    setSettingsSuccess('');
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deliveryInsideDhaka: Number(deliveryInsideDhaka),
+          deliveryOutsideDhaka: Number(deliveryOutsideDhaka),
+          whatsappNumber: brandPhone
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettingsSuccess('Delivery charges & store settings updated successfully! Live checkout will immediately use these rates.');
+        setTimeout(() => setSettingsSuccess(''), 4000);
+      } else {
+        alert(data.error || 'Failed to update settings');
+      }
+    } catch (err) {
+      alert('Error updating settings');
+    } finally {
+      setSavingSettings(false);
     }
   }
 
@@ -237,7 +285,9 @@ export default function AdminDashboard() {
             <ThemeToggle />
           </div>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div className="brand-mark" style={{ margin: '0 auto 16px' }}>MB</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <img src="/logo.png" alt="Metro Bro" className="brand-logo" />
+            </div>
             <h2>Metro Bro Admin</h2>
             <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '6px' }}>
               Enter password to access management console
@@ -282,10 +332,12 @@ export default function AdminDashboard() {
       <div className="admin-header">
         <div className="admin-title-group">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link className="brand-mark" href="/">MB</Link>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="/logo.png" alt="Metro Bro" className="brand-logo" />
+            </Link>
             <h1>Metro Bro Management</h1>
           </div>
-          <p>Product Catalog, Prices, Photos, Orders &amp; WhatsApp Notifications</p>
+          <p>Product Catalog, Prices, Delivery Rates, Orders &amp; WhatsApp</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -343,6 +395,12 @@ export default function AdminDashboard() {
           onClick={() => setActiveTab('products')}
         >
           <Package size={16} /> Product Variants &amp; Pricing ({products.length})
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          <Truck size={16} /> Delivery Charges &amp; Rates
         </button>
         <button 
           className={`tab-btn ${activeTab === 'whatsapp' ? 'active' : ''}`}
@@ -572,7 +630,108 @@ export default function AdminDashboard() {
       )}
 
       {/* ========================================================
-          TAB 3: WHATSAPP CLOUD API & SETTINGS
+          TAB 3: DELIVERY CHARGES & STORE SETTINGS
+         ======================================================== */}
+      {activeTab === 'settings' && (
+        <div style={{ maxWidth: '800px' }}>
+          <div className="stat-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <Truck size={22} style={{ color: 'var(--accent)' }} />
+              <h3 style={{ fontSize: '18px' }}>
+                Delivery Charges Configuration
+              </h3>
+            </div>
+            <p style={{ color: 'var(--ink-secondary)', fontSize: '13px', lineHeight: 1.6, marginBottom: '20px' }}>
+              Configure shipping fees for Bangladesh. Whenever a customer picks their district in the storefront checkout, the system automatically applies the fee set here.
+            </p>
+
+            <form onSubmit={handleSaveSettings} style={{ display: 'grid', gap: '20px' }}>
+              <div className="form-grid">
+                <label>
+                  Inside Dhaka Delivery Charge (৳ BDT) *
+                  <input 
+                    type="number" 
+                    required 
+                    min={0}
+                    placeholder="80" 
+                    value={deliveryInsideDhaka}
+                    onChange={(e) => setDeliveryInsideDhaka(Number(e.target.value) || 0)}
+                  />
+                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', marginTop: '4px' }}>
+                    Applied when customer selects &quot;Dhaka&quot; district
+                  </span>
+                </label>
+
+                <label>
+                  Outside Dhaka Delivery Charge (৳ BDT) *
+                  <input 
+                    type="number" 
+                    required 
+                    min={0}
+                    placeholder="120" 
+                    value={deliveryOutsideDhaka}
+                    onChange={(e) => setDeliveryOutsideDhaka(Number(e.target.value) || 0)}
+                  />
+                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', marginTop: '4px' }}>
+                    Applied for all other 63 Bangladesh districts
+                  </span>
+                </label>
+
+                <label className="full">
+                  Store WhatsApp Order Notification Number
+                  <input 
+                    type="text" 
+                    placeholder="8801799767774" 
+                    value={brandPhone}
+                    onChange={(e) => setBrandPhone(e.target.value)}
+                  />
+                  <span style={{ font: '11px var(--mono)', color: 'var(--muted)', marginTop: '4px' }}>
+                    Format with country code (e.g. 8801799767774). Receives WhatsApp order notifications.
+                  </span>
+                </label>
+              </div>
+
+              {settingsSuccess && (
+                <div style={{ 
+                  background: 'rgba(34, 197, 94, 0.1)', 
+                  border: '1px solid #22c55e', 
+                  borderRadius: '6px', 
+                  padding: '12px 16px', 
+                  color: '#22c55e',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Check size={16} /> {settingsSuccess}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                className="primary-button" 
+                style={{ width: 'fit-content' }}
+                disabled={savingSettings}
+              >
+                {savingSettings ? 'Saving Settings...' : 'Save & Update Delivery Charges ↗'}
+              </button>
+            </form>
+          </div>
+
+          <div className="stat-card">
+            <h4 style={{ fontSize: '15px', marginBottom: '8px' }}>How Backend Delivery Pricing Works</h4>
+            <ul style={{ paddingLeft: '20px', color: 'var(--ink-secondary)', fontSize: '13px', lineHeight: 1.8 }}>
+              <li><strong>Live API Sync:</strong> When customers load the checkout modal, rates are fetched live from <code>/api/settings</code>.</li>
+              <li><strong>Backend Verification:</strong> The order submission endpoint recalculates pricing on the server before saving to prevent tampering.</li>
+              <li><strong>WhatsApp Invoices:</strong> Automated WhatsApp order summaries immediately use the updated shipping rates.</li>
+              <li><strong>Cloud Storage:</strong> Rates are persisted in the Supabase <code>store_settings</code> table or cached in-memory fallback.</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          TAB 4: WHATSAPP CLOUD API & SETTINGS
          ======================================================== */}
       {activeTab === 'whatsapp' && (
         <div style={{ maxWidth: '800px' }}>

@@ -175,6 +175,19 @@ button, input, textarea, select {
   flex-shrink: 0;
 }
 
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.brand:hover .brand-logo {
+  transform: scale(1.06);
+}
+
 .brand:hover .brand-mark {
   background: var(--accent);
   color: #fff;

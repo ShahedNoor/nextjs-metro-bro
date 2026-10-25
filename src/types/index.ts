@@ -34,6 +34,8 @@ export interface StoreSettings {
   whatsappNumber: string;
   currency: string;
   notificationEmail: string;
+  deliveryInsideDhaka: number;
+  deliveryOutsideDhaka: number;
 }
 
 export interface WhatsAppConfig {

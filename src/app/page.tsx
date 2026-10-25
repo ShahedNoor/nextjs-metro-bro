@@ -29,6 +29,9 @@ export default function Storefront() {
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Live Delivery Rates from Backend (Admin Configurable)
+  const [rates, setRates] = useState({ insideDhaka: 80, outsideDhaka: 120 });
+
   // Form states with District default to Dhaka
   const [formData, setFormData] = useState({
     customerName: '',
@@ -41,6 +44,17 @@ export default function Storefront() {
 
   useEffect(() => {
     fetchProducts();
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.settings) {
+          setRates({
+            insideDhaka: Number(data.settings.deliveryInsideDhaka) || 80,
+            outsideDhaka: Number(data.settings.deliveryOutsideDhaka) || 120
+          });
+        }
+      })
+      .catch((err) => console.log('Using default delivery rates:', err));
   }, []);
 
   async function fetchProducts() {
@@ -77,9 +91,9 @@ export default function Storefront() {
     });
   }
 
-  // Delivery Calculations: Dhaka = ৳80, Outside Dhaka = ৳120
+  // Dynamic Delivery Calculations from Backend Settings
   const isDhaka = formData.district.trim().toLowerCase() === 'dhaka';
-  const deliveryCharge = isDhaka ? 80 : 120;
+  const deliveryCharge = isDhaka ? rates.insideDhaka : rates.outsideDhaka;
   const itemsSubtotal = selectedProduct ? selectedProduct.price * quantity : 0;
   const totalPayable = itemsSubtotal + deliveryCharge;
 
@@ -135,7 +149,7 @@ export default function Storefront() {
       {/* Main Header */}
       <header className="site-header">
         <Link className="brand" href="/">
-          <span className="brand-mark">MB</span>
+          <img src="/logo.png" alt="Metro Bro" className="brand-logo" />
           <span className="brand-name">METRO BRO</span>
         </Link>
         <nav>
@@ -323,7 +337,7 @@ export default function Storefront() {
       {/* Footer */}
       <footer>
         <Link className="footer-brand" href="/">
-          <span className="brand-mark">MB</span>
+          <img src="/logo.png" alt="Metro Bro" className="brand-logo" />
           <span>METRO BRO STORE</span>
         </Link>
         <p>© 2026 Metro Bro. Built for passionate riders.</p>
@@ -470,11 +484,11 @@ export default function Storefront() {
                       required
                       style={{ fontWeight: 600 }}
                     >
-                      <option value="Dhaka">Dhaka (ঢাকা) — Delivery: ৳80</option>
-                      <optgroup label="Outside Dhaka Districts (Delivery: ৳120)">
+                      <option value="Dhaka">Dhaka (ঢাকা) — Delivery: ৳{rates.insideDhaka}</option>
+                      <optgroup label={`Outside Dhaka Districts (Delivery: ৳${rates.outsideDhaka})`}>
                         {BANGLADESH_DISTRICTS.filter((d) => d !== 'Dhaka').map((dist) => (
                           <option key={dist} value={dist}>
-                            {dist} — Delivery: ৳120
+                            {dist} — Delivery: ৳{rates.outsideDhaka}
                           </option>
                         ))}
                       </optgroup>
